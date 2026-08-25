@@ -106,3 +106,10 @@ test/
   unit/                       # mocked Prisma, no DB
   integration/                # real Prisma + real Postgres
 ```
+## Tradeoffs
+
+- **No auth/RBAC** — explicitly out of scope per the assignment; would add as GraphQL context middleware if needed later.
+- **ILIKE substring search over full-text search** — simpler and sufficient for this dataset size; a real search index (Postgres `tsvector` or an external engine) would be the next step if search volume/quality became a concern.
+- **Field-resolver relations over eager joins** — `Collection.documents` and `Document.collection` are resolved lazily per-field for schema clarity; this can cause N+1 queries under heavy nested queries, which a `DataLoader` would fix if this became a bottleneck.
+- **Cursor pagination via document `id`** — chosen over offset pagination since it stays correct even as new documents are inserted mid-scroll.
+- **Cascading deletes at the database level** — `ON DELETE CASCADE` in the Prisma schema, rather than application code, so it holds true even for writes that bypass this API.
