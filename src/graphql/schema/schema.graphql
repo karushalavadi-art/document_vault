@@ -1,0 +1,91 @@
+"""
+Document Vault API
+Collections organize Documents. Documents can be searched, filtered, paginated,
+and moved between collections.
+"""
+
+type Collection {
+  id: ID!
+  name: String!
+  slug: String!
+  createdAt: String!
+  documents: [Document!]!
+}
+
+type Document {
+  id: ID!
+  title: String!
+  content: String!
+  tags: [String!]!
+  isArchived: Boolean!
+  createdAt: String!
+  collectionId: ID!
+  collection: Collection!
+}
+
+"""Cursor-paginated connection of documents, following the Relay-style edges/pageInfo shape."""
+type DocumentConnection {
+  edges: [DocumentEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DocumentEdge {
+  cursor: String!
+  node: Document!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type Query {
+  """All collections, most recently created first."""
+  collections: [Collection!]!
+
+  """A single collection with its nested documents, or null if it doesn't exist."""
+  collection(id: ID!): Collection
+
+  """
+  Search/list documents with optional filters.
+  - search: substring match (case-insensitive) against title OR content
+  - collectionId: restrict to one collection
+  - isArchived: filter by archive state
+  - take: page size (default 20, max 100)
+  - cursor: opaque cursor from a previous page's pageInfo.endCursor
+  """
+  documents(
+    collectionId: ID
+    isArchived: Boolean
+    search: String
+    take: Int
+    cursor: String
+  ): DocumentConnection!
+}
+
+input CreateCollectionInput {
+  name: String!
+  slug: String!
+}
+
+input CreateDocumentInput {
+  title: String!
+  content: String!
+  tags: [String!]
+  collectionId: ID!
+}
+
+input UpdateDocumentInput {
+  title: String
+  content: String
+  tags: [String!]
+  isArchived: Boolean
+}
+
+type Mutation {
+  createCollection(input: CreateCollectionInput!): Collection!
+  createDocument(input: CreateDocumentInput!): Document!
+  updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
+  deleteDocument(id: ID!): Boolean!
+  moveDocument(id: ID!, collectionId: ID!): Document!
+}

@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: document-vault-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vault
+      POSTGRES_PASSWORD: vault
+      POSTGRES_DB: document_vault
+    ports:
+      - "5432:5432"
+    volumes:
+      - document_vault_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vault -d document_vault"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  document_vault_data:
